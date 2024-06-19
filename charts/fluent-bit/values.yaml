@@ -1,0 +1,35 @@
+image:
+  repository: fluent/fluent-bit
+  tag: latest
+
+config:
+  fluentbit:
+    conf: |
+      [SERVICE]
+          Flush         1
+          Log_Level     info
+          Daemon        off
+          Parsers_File  parsers.conf
+
+      [INPUT]
+          Name          tail
+          Path          /var/log/containers/*.log
+          Parser        docker
+          Tag           kube.*
+
+      [OUTPUT]
+          Name          azure
+          Customer_ID   ${AZURE_CUSTOMER_ID}
+          Shared_Key    ${AZURE_SHARED_KEY}
+          Log_Type      fluentbit_logs
+          Time_Key      time
+          Time_Generated on
+
+    ## To add filters...
+  parsers:
+    conf: |
+      [PARSER]
+          Name        docker
+          Format      json
+          Time_Key    time
+          Time_Format %Y-%m-%dT%H:%M:%S.%L
